@@ -10,6 +10,7 @@ const App = () => {
   const [newName, setNewName] = useState('');
   const [newNumber, setNewNumber] = useState('');
   const [newFilter, setNewFilter] = useState('');
+  const [errorMessage, setErrorMessage] = useState(null);
 
   const addPerson = (event) => {
     event.preventDefault();
@@ -34,7 +35,10 @@ const App = () => {
             )
           )
           .catch((error) => {
-            alert(`§{person.name} was already deleted.`);
+            setErrorMessage(`§{person.name} was already deleted.`);
+            setTimeout(() => {
+              setErrorMessage(null);
+            }, 5000);
             setPersons(
               persons.filter((person) => person.id !== entryExists.id)
             );
@@ -70,6 +74,18 @@ const App = () => {
     }
   };
 
+  const Notification = ({ message }) => {
+    if (message === null) {
+      return null
+    }
+  
+    return (
+      <div className='error'>
+        {message}
+      </div>
+    )
+  }
+
   useEffect(hook, []);
 
   return (
@@ -84,6 +100,7 @@ const App = () => {
         newNumber={newNumber}
         setNewNumber={setNewNumber}
       />
+      <Notification message={errorMessage}/>
       <h2>Numbers</h2>
       <ul>
         <Persons
