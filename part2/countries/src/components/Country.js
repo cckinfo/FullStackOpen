@@ -1,6 +1,8 @@
 import axios from 'axios';
 import { useState, useEffect } from 'react';
 import CountryData from './CountryData';
+import * as dotenv from 'dotenv'
+dotenv.config();
 
 const Country = ({ country, length, handleClick }) => {
   const [weather, setWeather] = useState({});
