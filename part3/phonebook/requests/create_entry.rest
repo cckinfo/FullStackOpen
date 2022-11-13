@@ -1,0 +1,17 @@
+POST http://localhost:3001/api/persons
+content-type: application/json
+
+{
+  "name": "Dan King",
+  "number": "Yep hello"
+}
+
+###
+
+POST https://phonebook-backend-fso.fly.dev/api/persons
+content-type: application/json
+
+{
+  "name": "Dan King",
+  "number": "Yep hello"
+}
