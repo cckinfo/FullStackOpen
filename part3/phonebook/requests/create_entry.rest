@@ -3,7 +3,7 @@ content-type: application/json
 
 {
   "name": "Dan King",
-  "number": "Yep hello"
+  "number": "123"
 }
 
 ###
@@ -12,6 +12,6 @@ POST https://phonebook-backend-fso.fly.dev/api/persons
 content-type: application/json
 
 {
-  "name": "Dan King",
-  "number": "Yep hello"
+  "name": "KKK",
+  "number": "123323"
 }

@@ -1,104 +1,106 @@
+require('dotenv').config();
 const express = require('express');
-const { v4: uuidv4 } = require('uuid');
 const morgan = require('morgan');
 const cors = require('cors');
+const Entry = require('./models/entry');
 const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static('build'))
+app.use(express.static('build'));
 
-morgan.token('body', req => {
+morgan.token('body', (req) => {
   return JSON.stringify(req.body);
 });
 
-app.use(morgan(':method :url :status :res[content-length] - :response-time ms - :body'));
-
-let persons = [
-  {
-    id: uuidv4(),
-    name: 'Arto Hellas',
-    number: '040-123456',
-  },
-  {
-    id: uuidv4(),
-    name: 'Ada Lovelace',
-    number: '39-44-5323523',
-  },
-  {
-    id: uuidv4(),
-    name: 'Dan Abramov',
-    number: '12-43-234345',
-  },
-  {
-    id: uuidv4(),
-    name: 'Mary Poppendieck',
-    number: '39-23-6423122',
-  },
-];
+app.use(
+  morgan(
+    ':method :url :status :res[content-length] - :response-time ms - :body'
+  )
+);
 
 app.get('/api/persons', (request, response) => {
-  response.json(persons);
+  Entry.find({}).then((entries) => {
+    response.json(entries);
+  });
 });
 
-app.get('/info', (request, response) => {
-  const reply = `<p>Phonebook has ${persons.length} entries.</p>`;
+app.get('/info', async (request, response) => {
+  const length = await Entry.countDocuments({});
+  const reply = `<p>Phonebook has ${length} entries.</p>`;
   response.send(reply + new Date());
 });
 
-app.get('/api/persons/:id', (request, response) => {
-  const id = request.params.id;
-  const person = persons.find((person) => person.id === id);
-  if (person) {
-    response.json(person);
-  } else {
-    response.status(404).end();
-  }
+app.get('/api/persons/:id', (request, response, next) => {
+  Entry.findById(request.params.id)
+    .then((entry) => {
+      if (entry) {
+        response.json(entry);
+      } else {
+        response.status(404).end();
+      }
+    })
+    .catch((err) => next(err));
 });
 
-app.post('/api/persons', (request, response) => {
+app.post('/api/persons', (request, response, next) => {
   const body = request.body;
 
-  if (!body.name || !body.number) {
-    return response.status(400).json({
-      error: 'Name or number missing.',
-    });
-  }
+  const entry = new Entry({
+    name: body.name,
+    number: body.number,
+  });
 
-  let foundExisting = persons.find((person) => person.name == body.name);
-  console.log(foundExisting);
-  if (foundExisting) {
-    return response.status(400).json({
-      error: 'Name already exists.',
-    });
-  }
+  entry
+    .save()
+    .then((savedEntry) => {
+      response.json(savedEntry);
+    })
+    .catch((error) => next(error));
+});
 
-  console.log(Number(uuidv4()));
-  const person = {
-    id: uuidv4(),
+app.put('/api/persons/:id', (request, response, next) => {
+  const body = request.body;
+
+  const entry = {
     name: body.name,
     number: body.number,
   };
 
-  persons = persons.concat(person);
-
-  response.json(person);
+  Entry.findByIdAndUpdate(request.params.id, entry, { new: true, runValidators: true, context: 'query'})
+    .then((updatedEntry) => {
+      response.json(updatedEntry);
+    })
+    .catch((error) => next(error));
 });
 
 app.delete('/api/persons/:id', (request, response) => {
-  const id = request.params.id;
-  persons = persons.filter((person) => person.id !== id);
-
-  response.status(204).end();
+  Entry.findByIdAndRemove(request.params.id)
+    .then((result) => {
+      response.status(204).end();
+    })
+    .catch((error) => next(error));
 });
 
 const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: 'unknown endpoint' })
-}
+  response.status(404).send({ error: 'unknown endpoint' });
+};
+app.use(unknownEndpoint);
 
-app.use(unknownEndpoint)
+const errorHandler = (error, request, response, next) => {
+  console.error(error.message);
 
-const PORT = process.env.PORT || 3001;
+  if (error.name === 'CastError') {
+    return response.status(400).send({ error: 'malformatted id' });
+  } else if (error.name === 'ValidationError') {
+    return response.status(400).json({ error: error.message });
+  }
+
+  next(error);
+};
+app.use(errorHandler);
+
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
   console.log(`Server currently running on port: ${PORT}`);
 });
