@@ -48,19 +48,23 @@ const App = () => {
         setNewNumber('');
       }
     } else {
-      setSuccessMessage(`${personObj.name} was successfully added to the phonebook.`);
-      setTimeout(() => {
-        setSuccessMessage(null);
-      }, 5000);
         personService
           .create(personObj)
           .then((returnedPerson) => {
             setPersons(persons.concat(returnedPerson));
             setNewName('');
             setNewNumber('');
+
+            setSuccessMessage(`${personObj.name} was successfully added to the phonebook.`);
+            setTimeout(() => {
+              setSuccessMessage(null);
+            }, 5000);
           })
           .catch((error) => {
-            console.log(error.response.data);
+            setErrorMessage(JSON.stringify(error.response.data));
+            setTimeout(() => {
+              setErrorMessage(null);
+            }, 5000);
           });
     }
   };
