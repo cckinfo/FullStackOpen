@@ -67,16 +67,20 @@ app.put('/api/persons/:id', (request, response, next) => {
     number: body.number,
   };
 
-  Entry.findByIdAndUpdate(request.params.id, entry, { new: true, runValidators: true, context: 'query'})
+  Entry.findByIdAndUpdate(request.params.id, entry, {
+    new: true,
+    runValidators: true,
+    context: 'query',
+  })
     .then((updatedEntry) => {
       response.json(updatedEntry);
     })
     .catch((error) => next(error));
 });
 
-app.delete('/api/persons/:id', (request, response) => {
+app.delete('/api/persons/:id', (request, response, next) => {
   Entry.findByIdAndRemove(request.params.id)
-    .then((result) => {
+    .then(() => {
       response.status(204).end();
     })
     .catch((error) => next(error));
