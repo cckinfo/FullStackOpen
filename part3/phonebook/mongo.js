@@ -5,7 +5,6 @@ if (process.argv.length < 3) {
   process.exit(1);
 }
 
-const password = process.argv[2];
 const new_name = process.argv[3];
 const new_number = process.argv[4];
 
@@ -17,10 +16,10 @@ const entrySchema = new mongoose.Schema({
 });
 
 const Entry = mongoose.model('Entry', entrySchema);
-if (process.argv.length == 5) {
+if (process.argv.length === 5) {
   mongoose
     .connect(url)
-    .then((result) => {
+    .then(() => {
       console.log('connected');
 
       const entry = new Entry({
@@ -36,7 +35,7 @@ if (process.argv.length == 5) {
     })
     .catch((err) => console.log(err));
 } else {
-  mongoose.connect(url).then((result) => {
+  mongoose.connect(url).then(() => {
     console.log('connected');
     Entry.find({}).then((result) => {
       result.forEach((entry) => {
